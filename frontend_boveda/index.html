@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bóveda de Accesos | Infraestructura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 900: '#0f172a', 800: '#1e293b', 500: '#3b82f6' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-900 text-slate-300 font-sans antialiased min-h-screen p-4 md:p-8">
+
+    <header class="max-w-6xl mx-auto flex justify-between items-center mb-10 border-b border-slate-700 pb-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">Bóveda E2EE</h1>
+            <p class="text-sm text-slate-400 mt-1">Gestión Segura de Credenciales de Infraestructura</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span id="nombreUsuarioBadge" class="hidden text-sm font-bold text-emerald-400 bg-emerald-900/30 px-3 py-1 rounded"></span>
+            
+            <button id="btnCerrarSesion" onclick="window.location.reload()" class="hidden bg-red-900/50 hover:bg-red-800 text-red-400 border border-red-700 px-3 py-1 rounded text-xs font-bold transition-colors">
+                Cerrar Sesión
+            </button>
+            
+            <span class="bg-blue-900/50 text-blue-400 border border-blue-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider hidden md:inline-block">
+                Línea BMS
+            </span>
+        </div>
+    </header>
+
+    <!-- Panel de Autenticación -->
+    <!-- Panel de Autenticación de Dos Puertas -->
+    <form id="authSection" onsubmit="event.preventDefault(); cargarEquipos();" class="max-w-md mx-auto bg-brand-800 rounded-2xl shadow-xl overflow-hidden p-8 border border-slate-700 mt-12 transition-all">
+        <div class="flex items-center justify-center mb-6">
+            <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        </div>
+        <h2 class="text-2xl font-bold mb-2 text-white text-center">Identidad y Bóveda</h2>
+        
+        <div class="space-y-4 mt-6">
+            <!-- Puerta 1: Identidad (Con autocompletado del navegador) -->
+            <div>
+                <label class="text-xs text-slate-400 uppercase font-bold mb-1 block">Puerta 1: Tu Identidad</label>
+                <input type="email" id="loginEmail" autocomplete="username" required class="w-full bg-slate-900 text-white px-4 py-2 mb-3 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Tu correo electrónico">
+                
+                <div class="relative">
+                    <input type="password" id="loginPassword" autocomplete="current-password" required class="w-full bg-slate-900 text-white px-4 py-2 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Tu contraseña personal">
+                    <button type="button" onclick="togglePassword('loginPassword')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white outline-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Puerta 2: Bóveda -->
+            <div class="pt-4 border-t border-slate-700">
+                <label class="text-xs text-slate-400 uppercase font-bold mb-1 block">Puerta 2: El Candado del Equipo</label>
+                <div class="relative">
+                    <input type="password" id="masterPassword" autocomplete="off" required class="w-full bg-slate-900 text-white px-4 py-2 border border-emerald-600/50 rounded-lg focus:outline-none focus:border-emerald-500" placeholder="Contraseña Maestra Compartida">
+                    <button type="button" onclick="togglePassword('masterPassword')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-emerald-400 outline-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" id="btnAcceder" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg shadow-blue-500/30 mt-4 disabled:bg-slate-600 disabled:cursor-not-allowed">
+                Acceder a la Infraestructura
+            </button>
+        </div>
+        <p id="errorMsg" class="text-red-400 text-sm mt-4 text-center hidden"></p>
+    </form>
+
+    <!-- Bóveda Principal -->
+    <div id="bovedaSection" class="max-w-6xl mx-auto hidden">
+        <div class="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4">
+            <div class="relative w-full lg:w-1/3">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" id="buscador" onkeyup="filtrarEquipos()" placeholder="Buscar equipo, IP, sitio o usuario..." class="w-full bg-brand-800 text-white pl-10 pr-4 py-3 border border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 shadow-lg transition-colors">
+            </div>
+            <div class="flex flex-wrap gap-2 w-full lg:w-auto justify-end">
+                <button onclick="abrirModalNuevoUsuario()" class="w-full md:w-auto border border-slate-600 hover:bg-slate-700 text-slate-300 px-4 py-3 rounded-xl text-sm font-bold transition-colors shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                    Añadir Compañero
+                </button>
+                <button onclick="abrirModalRotarLlave()" class="w-full md:w-auto bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl text-sm font-bold transition-colors shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Rotar Llave
+                </button>
+                <button onclick="abrirModalNuevo()" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Nuevo Equipo
+                </button>
+            </div>
+        </div>
+        <div id="listaEquipos" class="space-y-10"></div>
+    </div>
+
+    <!-- Toast de Copiado (Notificación) -->
+    <div id="toastCopiado" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-xl transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none z-50 font-bold flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        ¡Copiado al portapapeles!
+    </div>
+
+    <!-- TODOS LOS MODALES (Nuevo, Editar, Rotar, Historial, Usuario) SIGUEN IGUAL -->
+    <div id="modalNuevoUsuario" class="fixed inset-0 bg-black/80 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-brand-800 rounded-2xl p-6 border border-slate-700 w-full max-w-sm shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-4">Registrar Compañero</h2>
+            <div class="space-y-3">
+                <input type="text" id="regNombre" placeholder="Nombre (Ej. Carlos)" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                <input type="email" id="regEmail" placeholder="Correo electrónico" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                <input type="password" id="regPassword" placeholder="Contraseña personal inicial" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+            </div>
+            <p id="regStatus" class="text-sm mt-3 hidden font-bold"></p>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="cerrarModalNuevoUsuario()" class="text-slate-400 hover:text-white px-4 py-2 text-sm font-bold">Cancelar</button>
+                <button onclick="registrarNuevoUsuario()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-bold">Registrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalNuevo" class="fixed inset-0 bg-black/80 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-brand-800 rounded-2xl p-6 border border-slate-700 w-full max-w-md shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-4">Registrar Nuevo Acceso</h2>
+            <div class="space-y-3">
+                <input type="text" id="nuevoSitio" list="opcionesSitios" placeholder="Sitio o Cliente (Ej. ODATA)" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                <datalist id="opcionesSitios">
+                    <option value="KIO"><option value="ODATA"><option value="Equinix"><option value="Takoda"><option value="Sierracol">
+                </datalist>
+                <input type="text" id="nuevoNombre" placeholder="Nombre de Equipo" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                <select id="nuevoTipo" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                    <option value="Servidor">Servidor</option>
+                    <option value="BMS">BMS / Control</option>
+                    <option value="UPS">UPS</option>
+                    <option value="Tarjeta Red">Tarjeta de Red</option>
+                    <option value="CCTV">CCTV</option>
+                    <option value="Acceso">Control de Acceso</option>
+                </select>
+                <input type="text" id="nuevaIP" placeholder="IP o Host" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                <input type="text" id="nuevoUsuario" placeholder="Usuario" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded outline-none focus:border-blue-500">
+                <input type="password" id="nuevoPassword" placeholder="Contraseña a proteger" class="w-full bg-slate-900 text-white px-3 py-2 border border-slate-600 rounded border-emerald-500 outline-none focus:border-emerald-400">
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="cerrarModalNuevo()" class="text-slate-400 hover:text-white px-4 py-2 text-sm font-bold">Cancelar</button>
+                <button onclick="guardarEquipo()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="fixed inset-0 bg-black/80 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-brand-800 rounded-2xl p-6 border border-slate-700 w-full max-w-sm shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-2">Actualizar Contraseña</h2>
+            <p id="editarNombreEquipo" class="text-sm text-slate-400 mb-4"></p>
+            <input type="hidden" id="editarIdEquipo">
+            <input type="password" id="editarPasswordNueva" placeholder="Escribe la nueva contraseña" class="w-full bg-slate-900 text-white px-3 py-3 border border-slate-600 rounded-lg outline-none focus:border-blue-500 mb-6">
+            <div class="flex justify-end gap-3">
+                <button onclick="cerrarModalEditar()" class="text-slate-400 hover:text-white px-4 py-2 text-sm font-bold">Cancelar</button>
+                <button onclick="guardarEdicion()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg">Actualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRotar" class="fixed inset-0 bg-black/80 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-brand-800 rounded-2xl p-6 border border-slate-700 w-full max-w-md shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-2">Rotar Llave Maestra</h2>
+            <p class="text-sm text-slate-400 mb-6">Esto descifrará todos los equipos y los volverá a cifrar con la nueva clave. No cierres la ventana durante el proceso.</p>
+            
+            <div class="space-y-4">
+                <input type="password" id="rotarPasswordNueva" placeholder="Escribe la NUEVA Contraseña Maestra" class="w-full bg-slate-900 text-white px-4 py-3 border border-emerald-600 rounded-lg outline-none focus:border-emerald-400">
+                <input type="password" id="rotarPasswordConfirmar" placeholder="Confirma la NUEVA Contraseña" class="w-full bg-slate-900 text-white px-4 py-3 border border-emerald-600 rounded-lg outline-none focus:border-emerald-400">
+            </div>
+            <p id="rotarStatus" class="text-blue-400 text-sm mt-4 hidden font-bold text-center"></p>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="cerrarModalRotarLlave()" class="text-slate-400 hover:text-white px-4 py-2 text-sm font-bold">Cancelar</button>
+                <button onclick="ejecutarRotacionLlaves()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg">Iniciar Rotación</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalHistorial" class="fixed inset-0 bg-black/80 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-brand-800 rounded-2xl p-6 border border-slate-700 w-full max-w-2xl shadow-2xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-white">Historial de Cambios</h2>
+                <button onclick="cerrarModalHistorial()" class="text-slate-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <p id="historialNombreEquipo" class="text-sm text-blue-400 mb-4 font-bold"></p>
+            <div class="overflow-y-auto flex-1 pr-2">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-900 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">Fecha</th>
+                            <th class="px-4 py-3">Modificado Por</th>
+                            <th class="px-4 py-3 rounded-tr-lg text-right">Contraseña Anterior</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaHistorial" class="divide-y divide-slate-700"></tbody>
+                </table>
+                <p id="mensajeHistorialVacio" class="text-center text-slate-500 py-8 hidden">No hay versiones anteriores de este equipo.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let equiposLocales = []; 
+        let llaveMaestraRAM = null;
+        let usuarioActual = null; 
+
+        const API_URL = "https://api-boveda-bms.onrender.com";
+
+        // Función para copiar texto al portapapeles y mostrar el Toast
+        function copiarTexto(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                const toast = document.getElementById("toastCopiado");
+                toast.classList.remove("opacity-0", "translate-y-10");
+                setTimeout(() => {
+                    toast.classList.add("opacity-0", "translate-y-10");
+                }, 2000);
+            });
+        }
+        // Función para mostrar/ocultar contraseñas
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
+        }
+
+        async function derivarLlave(password) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]);
+            const salt = enc.encode("BovedaInfraestructuraSalt2026");
+            return await window.crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+                keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+            );
+        }
+
+        async function cifrarTexto(textoPlano, llave) {
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const enc = new TextEncoder();
+            const bufferCifrado = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, llave, enc.encode(textoPlano));
+            return { 
+                cifradoBase64: btoa(String.fromCharCode(...new Uint8Array(bufferCifrado))), 
+                ivBase64: btoa(String.fromCharCode(...iv)) 
+            };
+        }
+
+        async function descifrarTexto(textoCifradoBase64, ivBase64, llave) {
+            try {
+                const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+                const datosCifrados = Uint8Array.from(atob(textoCifradoBase64), c => c.charCodeAt(0));
+                const bufferDescifrado = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, llave, datosCifrados);
+                return new TextDecoder().decode(bufferDescifrado);
+            } catch (e) {
+                return "Bloqueado";
+            }
+        }
+
+        async function cargarEquipos() {
+            const email = document.getElementById("loginEmail").value;
+            const passPersonal = document.getElementById("loginPassword").value;
+            const passMaestra = document.getElementById("masterPassword").value;
+            const errorMsg = document.getElementById("errorMsg");
+            const btnAcceder = document.getElementById("btnAcceder");
+
+            if (!email || !passPersonal || !passMaestra) {
+                errorMsg.textContent = "Por favor, completa los tres campos.";
+                errorMsg.classList.remove("hidden");
+                return;
+            }
+
+            // Cambiar estado visual mientras esperamos al servidor
+            btnAcceder.disabled = true;
+            btnAcceder.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Verificando conexión...`;
+            errorMsg.classList.add("hidden");
+
+            try {
+                const resLogin = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password_personal: passPersonal })
+                });
+
+                if (!resLogin.ok) throw new Error("Credenciales personales incorrectas.");
+                usuarioActual = await resLogin.json();
+
+                llaveMaestraRAM = await derivarLlave(passMaestra);
+
+                const respuesta = await fetch(`${API_URL}/equipos/`);
+                equiposLocales = await respuesta.json();
+                
+                for (let eq of equiposLocales) {
+                    eq.passwordRevelada = await descifrarTexto(eq.password_cifrada, eq.iv_cifrado, llaveMaestraRAM);
+                }
+
+                document.getElementById("authSection").classList.add("hidden");
+                document.getElementById("bovedaSection").classList.remove("hidden");
+                
+                const badge = document.getElementById("nombreUsuarioBadge");
+                badge.textContent = `Operador: ${usuarioActual.nombre}`;
+                badge.classList.remove("hidden");
+                
+                document.getElementById("btnCerrarSesion").classList.remove("hidden");
+
+                renderizarPantalla(equiposLocales);
+            } catch (e) {
+                // Si hay error, restaurar el botón
+                btnAcceder.disabled = false;
+                btnAcceder.innerHTML = "Acceder a la Infraestructura";
+                errorMsg.textContent = e.message || "Error de red. El servidor de Render podría estar despertando, intenta de nuevo.";
+                errorMsg.classList.remove("hidden");
+            }
+        }
+
+        function filtrarEquipos() {
+            const termino = document.getElementById("buscador").value.toLowerCase();
+            const filtrados = equiposLocales.filter(eq => 
+                (eq.nombre_equipo && eq.nombre_equipo.toLowerCase().includes(termino)) ||
+                (eq.sitio && eq.sitio.toLowerCase().includes(termino)) ||
+                (eq.ip_direccion && eq.ip_direccion.toLowerCase().includes(termino)) ||
+                (eq.usuario_acceso && eq.usuario_acceso.toLowerCase().includes(termino))
+            );
+            renderizarPantalla(filtrados);
+        }
+
+        function renderizarPantalla(listaEquipos) {
+            const contenedor = document.getElementById("listaEquipos");
+            contenedor.innerHTML = ""; 
+
+            const grupos = {};
+            listaEquipos.forEach(eq => {
+                const sitio = eq.sitio || "Sin Asignar";
+                if (!grupos[sitio]) grupos[sitio] = [];
+                grupos[sitio].push(eq);
+            });
+
+            for (const [sitio, equiposDelSitio] of Object.entries(grupos)) {
+                let htmlTarjetas = "";
+                
+                equiposDelSitio.forEach(eq => {
+                    const esBloqueado = eq.passwordRevelada === "Bloqueado";
+                    const textColor = esBloqueado ? "text-red-400" : "text-emerald-400";
+                    
+                    // Ícono SVG de copiar
+                    const copyIcon = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+
+                    htmlTarjetas += `
+                        <div class="bg-brand-800 rounded-xl p-5 border border-slate-700 flex flex-col justify-between hover:border-blue-500/50 transition-colors shadow-lg">
+                            <div>
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-white truncate" title="${eq.nombre_equipo}">${eq.nombre_equipo}</h3>
+                                        <span class="text-xs text-slate-400 bg-slate-900 px-2 py-1 rounded mt-1 inline-block border border-slate-700">${eq.tipo}</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2 text-sm mb-5">
+                                    <div class="flex justify-between items-center border-b border-slate-700 pb-2 group">
+                                        <span class="text-slate-400">IP:</span>
+                                        <div class="flex items-center">
+                                            <span class="text-slate-200 font-mono">${eq.ip_direccion || 'N/A'}</span>
+                                            ${eq.ip_direccion ? `<button onclick="copiarTexto('${eq.ip_direccion}')" class="text-slate-500 hover:text-blue-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 outline-none" title="Copiar IP">${copyIcon}</button>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center border-b border-slate-700 pb-2 group">
+                                        <span class="text-slate-400">Usuario:</span>
+                                        <div class="flex items-center">
+                                            <span class="text-slate-200 font-mono">${eq.usuario_acceso || 'N/A'}</span>
+                                            ${eq.usuario_acceso ? `<button onclick="copiarTexto('${eq.usuario_acceso}')" class="text-slate-500 hover:text-blue-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 outline-none" title="Copiar Usuario">${copyIcon}</button>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded mt-2 group">
+                                        <span class="text-slate-400 mr-2">Clave:</span>
+                                        <div class="flex items-center">
+                                            <span class="${textColor} font-mono font-bold break-all text-right">${eq.passwordRevelada}</span>
+                                            ${!esBloqueado ? `<button onclick="copiarTexto('${eq.passwordRevelada.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-emerald-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 outline-none" title="Copiar Contraseña">${copyIcon}</button>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 mt-auto">
+                                <button onclick="abrirModalEditar(${eq.id}, '${eq.nombre_equipo}')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-3 rounded transition-colors">
+                                    Editar
+                                </button>
+                                <button onclick="abrirModalHistorial(${eq.id}, '${eq.nombre_equipo}')" class="flex-1 border border-slate-600 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2 px-3 rounded transition-colors">
+                                    Historial
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                contenedor.innerHTML += `
+                    <div class="bg-slate-900/40 p-6 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-3 mb-6 border-b border-slate-700 pb-3">
+                            <h2 class="text-2xl font-bold text-white uppercase tracking-wider">${sitio}</h2>
+                            <span class="ml-auto bg-slate-800 text-slate-400 text-xs px-3 py-1 rounded-full">${equiposDelSitio.length} equipos</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            ${htmlTarjetas}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (Object.keys(grupos).length === 0) contenedor.innerHTML = `<p class="text-center text-slate-500 mt-10">No se encontraron equipos.</p>`;
+        }
+
+        // Resto de las funciones de modales...
+        function abrirModalNuevo() { document.getElementById("modalNuevo").classList.remove("hidden"); }
+        function cerrarModalNuevo() { document.getElementById("modalNuevo").classList.add("hidden"); }
+
+        async function guardarEquipo() {
+            const pass = document.getElementById("nuevoPassword").value;
+            const nombre = document.getElementById("nuevoNombre").value;
+            if (!nombre || !pass) return alert("Falta nombre o contraseña");
+            const { cifradoBase64, ivBase64 } = await cifrarTexto(pass, llaveMaestraRAM);
+            const payload = {
+                sitio: document.getElementById("nuevoSitio").value || "Sin Asignar",
+                nombre_equipo: nombre, tipo: document.getElementById("nuevoTipo").value,
+                ip_direccion: document.getElementById("nuevaIP").value, usuario_acceso: document.getElementById("nuevoUsuario").value,
+                password_cifrada: cifradoBase64, iv_cifrado: ivBase64, creado_por: usuarioActual.id 
+            };
+            const res = await fetch(`${API_URL}/equipos/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) {
+                cerrarModalNuevo();
+                const equiposResponse = await fetch(`${API_URL}/equipos/`);
+                equiposLocales = await equiposResponse.json();
+                for (let eq of equiposLocales) eq.passwordRevelada = await descifrarTexto(eq.password_cifrada, eq.iv_cifrado, llaveMaestraRAM);
+                renderizarPantalla(equiposLocales);
+            }
+        }
+
+        function abrirModalEditar(id, nombre) {
+            document.getElementById("editarIdEquipo").value = id; document.getElementById("editarNombreEquipo").textContent = `Equipo: ${nombre}`;
+            document.getElementById("editarPasswordNueva").value = ""; document.getElementById("modalEditar").classList.remove("hidden");
+        }
+        function cerrarModalEditar() { document.getElementById("modalEditar").classList.add("hidden"); }
+
+        async function guardarEdicion() {
+            const id = document.getElementById("editarIdEquipo").value;
+            const nuevaPass = document.getElementById("editarPasswordNueva").value;
+            if (!nuevaPass) return alert("Debes ingresar una contraseña");
+            const { cifradoBase64, ivBase64 } = await cifrarTexto(nuevaPass, llaveMaestraRAM);
+            const res = await fetch(`${API_URL}/equipos/${id}/password`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password_cifrada_nueva: cifradoBase64, iv_cifrado_nuevo: ivBase64, modificado_por: usuarioActual.id })
+            });
+            if (res.ok) {
+                cerrarModalEditar();
+                const equiposResponse = await fetch(`${API_URL}/equipos/`);
+                equiposLocales = await equiposResponse.json();
+                for (let eq of equiposLocales) eq.passwordRevelada = await descifrarTexto(eq.password_cifrada, eq.iv_cifrado, llaveMaestraRAM);
+                renderizarPantalla(equiposLocales);
+            }
+        }
+
+        function cerrarModalHistorial() { document.getElementById("modalHistorial").classList.add("hidden"); }
+
+        async function abrirModalHistorial(id, nombre) {
+            document.getElementById("historialNombreEquipo").textContent = `Sitio / Equipo: ${nombre}`;
+            document.getElementById("tablaHistorial").innerHTML = ""; document.getElementById("mensajeHistorialVacio").classList.add("hidden");
+            document.getElementById("modalHistorial").classList.remove("hidden");
+            const respuesta = await fetch(`${API_URL}/equipos/${id}/historial`);
+            const historial = await respuesta.json();
+            if (historial.length === 0) { document.getElementById("mensajeHistorialVacio").classList.remove("hidden"); return; }
+            const tbody = document.getElementById("tablaHistorial");
+            for (const reg of historial) {
+                const claveRescatada = await descifrarTexto(reg.password_cifrada_anterior, reg.iv_cifrado_anterior, llaveMaestraRAM);
+                const fecha = new Date(reg.fecha_cambio).toLocaleString();
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/50 transition-colors">
+                        <td class="px-4 py-3 font-mono text-slate-300 whitespace-nowrap">${fecha}</td>
+                        <td class="px-4 py-3 text-emerald-400 font-bold capitalize">${reg.modificado_por}</td>
+                        <td class="px-4 py-3 text-right">
+                            <span class="bg-red-900/30 text-red-400 font-mono font-bold px-2 py-1 rounded select-all">${claveRescatada}</span>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function abrirModalRotarLlave() { 
+            document.getElementById("rotarPasswordNueva").value = ""; document.getElementById("rotarPasswordConfirmar").value = "";
+            document.getElementById("rotarStatus").classList.add("hidden"); document.getElementById("modalRotar").classList.remove("hidden"); 
+        }
+        function cerrarModalRotarLlave() { document.getElementById("modalRotar").classList.add("hidden"); }
+
+        async function ejecutarRotacionLlaves() {
+            const nuevaPass = document.getElementById("rotarPasswordNueva").value; const confirmarPass = document.getElementById("rotarPasswordConfirmar").value;
+            const status = document.getElementById("rotarStatus");
+            if (!nuevaPass || nuevaPass !== confirmarPass) return alert("Las contraseñas no coinciden o están vacías.");
+            if (!llaveMaestraRAM || !usuarioActual) return alert("Error de sesión. Recarga la página.");
+            const confirmacion = confirm("¿Estás seguro de cambiar la llave maestra para todo el equipo? Todos deberán usar esta nueva clave a partir de ahora.");
+            if (!confirmacion) return;
+            status.textContent = "Derivando nueva llave matemática..."; status.classList.remove("hidden");
+            try {
+                const nuevaLlaveCriptografica = await derivarLlave(nuevaPass);
+                let actualizados = 0;
+                for (let eq of equiposLocales) {
+                    status.textContent = `Re-encriptando equipo: ${eq.nombre_equipo} (${actualizados + 1}/${equiposLocales.length})...`;
+                    if (eq.passwordRevelada && eq.passwordRevelada !== "Bloqueado") {
+                        const { cifradoBase64, ivBase64 } = await cifrarTexto(eq.passwordRevelada, nuevaLlaveCriptografica);
+                        await fetch(`${API_URL}/equipos/${eq.id}/password`, {
+                            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password_cifrada_nueva: cifradoBase64, iv_cifrado_nuevo: ivBase64, modificado_por: usuarioActual.id })
+                        });
+                        actualizados++;
+                    }
+                }
+                llaveMaestraRAM = nuevaLlaveCriptografica;
+                status.textContent = "¡Rotación completada con éxito!";
+                setTimeout(() => { cerrarModalRotarLlave(); alert(`Se han actualizado ${actualizados} equipos. A partir de ahora, utilicen la nueva Llave Maestra.`); }, 1500);
+            } catch (e) {
+                status.textContent = "Ocurrió un error de red durante la rotación."; console.error(e);
+            }
+        }
+
+        function abrirModalNuevoUsuario() { 
+            document.getElementById("regNombre").value = ""; document.getElementById("regEmail").value = ""; document.getElementById("regPassword").value = "";
+            document.getElementById("regStatus").classList.add("hidden"); document.getElementById("modalNuevoUsuario").classList.remove("hidden"); 
+        }
+        function cerrarModalNuevoUsuario() { document.getElementById("modalNuevoUsuario").classList.add("hidden"); }
+
+        async function registrarNuevoUsuario() {
+            const nombre = document.getElementById("regNombre").value; const email = document.getElementById("regEmail").value;
+            const password = document.getElementById("regPassword").value; const status = document.getElementById("regStatus");
+            if(!nombre || !email || !password) { status.textContent = "Llena todos los campos"; status.className = "text-red-400 text-sm mt-3 font-bold"; status.classList.remove("hidden"); return; }
+            try {
+                const res = await fetch(`${API_URL}/usuarios/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: nombre, email: email, password_personal: password }) });
+                if (res.ok) {
+                    status.textContent = "Compañero registrado con éxito."; status.className = "text-emerald-400 text-sm mt-3 font-bold"; status.classList.remove("hidden");
+                    setTimeout(cerrarModalNuevoUsuario, 1500);
+                } else { throw new Error("El correo ya existe o hubo un error."); }
+            } catch(e) { status.textContent = e.message; status.className = "text-red-400 text-sm mt-3 font-bold"; status.classList.remove("hidden"); }
+        }
+    </script>
+</body>
+</html>
